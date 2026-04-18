@@ -1,0 +1,37 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# next.js
+.next/
+out/
+
+# build
+dist/
+
+# env
+.env
+.env.local
+.env*.local
+
+# turbo
+.turbo/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# worker artifacts (model training outputs)
+apps/worker/artifacts/
+
+# misc
+.DS_Store
+*.pem
+*.log
+
+# IDE
+.vscode/
+.idea/
