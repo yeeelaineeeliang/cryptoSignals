@@ -1,7 +1,12 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatLogret, formatPrice, formatRelativeTime } from "@/lib/format";
+import {
+  formatLogretPct,
+  formatPrice,
+  formatRelativeTime,
+  signalCopy,
+} from "@/lib/format";
 import type { Prediction } from "@crypto-signals/shared";
 
 interface SignalFeedProps {
@@ -9,11 +14,11 @@ interface SignalFeedProps {
   watchedSymbols: Set<string>;
 }
 
-const ROW_SIGNAL_STYLES: Record<string, string> = {
-  LONG: "text-green-400",
-  SHORT: "text-red-400",
-  HOLD: "text-white/50",
-};
+const ROW_TONE = {
+  up: "text-green-400",
+  down: "text-red-400",
+  flat: "text-white/50",
+} as const;
 
 export function SignalFeed({ predictions, watchedSymbols }: SignalFeedProps) {
   const filtered = predictions.filter((p) => watchedSymbols.has(p.symbol));
@@ -23,45 +28,47 @@ export function SignalFeed({ predictions, watchedSymbols }: SignalFeedProps) {
     <Card>
       <CardHeader>
         <CardTitle className="text-sm font-medium text-muted-foreground">
-          Recent signals
+          Recent calls
         </CardTitle>
       </CardHeader>
       <CardContent>
         {show.length === 0 ? (
           <div className="py-6 text-center text-xs text-muted-foreground">
-            Waiting for the next prediction… the model runs every 30s.
+            No calls yet. The model checks the market every 30 seconds — this
+            list will fill in shortly.
           </div>
         ) : (
-          <div className="divide-y divide-white/5 font-mono text-xs">
+          <div className="divide-y divide-white/5 text-xs">
             <div className="grid grid-cols-[auto_auto_1fr_auto_auto] items-center gap-3 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground">
-              <span>Time</span>
-              <span>Symbol</span>
-              <span className="text-right">Predicted</span>
-              <span className="text-right">Price</span>
-              <span className="text-right">Signal</span>
+              <span>When</span>
+              <span>Coin</span>
+              <span className="text-right">Predicted change</span>
+              <span className="text-right">Price now</span>
+              <span className="text-right">Call</span>
             </div>
-            {show.map((p) => (
-              <div
-                key={p.id}
-                className="grid grid-cols-[auto_auto_1fr_auto_auto] items-center gap-3 py-2"
-              >
-                <span className="text-muted-foreground">
-                  {formatRelativeTime(p.created_at)}
-                </span>
-                <span className="font-semibold">{p.symbol}</span>
-                <span className="text-right">
-                  {formatLogret(p.predicted_logret)}
-                </span>
-                <span className="text-right text-muted-foreground">
-                  {formatPrice(p.current_price)}
-                </span>
-                <span
-                  className={`text-right font-semibold ${ROW_SIGNAL_STYLES[p.signal] ?? ROW_SIGNAL_STYLES.HOLD}`}
+            {show.map((p) => {
+              const copy = signalCopy(p.signal);
+              return (
+                <div
+                  key={p.id}
+                  className="grid grid-cols-[auto_auto_1fr_auto_auto] items-center gap-3 py-2"
                 >
-                  {p.signal}
-                </span>
-              </div>
-            ))}
+                  <span className="text-muted-foreground font-mono">
+                    {formatRelativeTime(p.created_at)}
+                  </span>
+                  <span className="font-semibold">{p.symbol}</span>
+                  <span className={`text-right font-mono ${ROW_TONE[copy.tone]}`}>
+                    {formatLogretPct(p.predicted_logret)}
+                  </span>
+                  <span className="text-right text-muted-foreground font-mono">
+                    {formatPrice(p.current_price)}
+                  </span>
+                  <span className={`text-right font-semibold ${ROW_TONE[copy.tone]}`}>
+                    {copy.arrow} {copy.label}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         )}
       </CardContent>

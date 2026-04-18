@@ -49,6 +49,34 @@ export function formatLogret(value: number | null | undefined): string {
   return `${(value * 10_000).toFixed(1)} bps`;
 }
 
+/**
+ * Friendly percentage formatter for tiny log-returns. Designed for users
+ * who don't know what "bps" or "log-returns" mean — shows e.g. "+0.04%"
+ * or "−0.12%" with a sign and reasonable precision.
+ */
+export function formatLogretPct(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "—";
+  const pct = value * 100; // log-return ≈ % return for small moves
+  const sign = pct > 0 ? "+" : pct < 0 ? "−" : "";
+  return `${sign}${Math.abs(pct).toFixed(3)}%`;
+}
+
+/**
+ * Translate a SHORT/LONG/HOLD signal into a non-finance label + arrow + tone.
+ * For a user who has never traded, "LONG" is meaningless — "Buy" is not.
+ */
+export function signalCopy(signal: string | null | undefined) {
+  switch (signal) {
+    case "LONG":
+      return { label: "Buy", arrow: "▲", tone: "up" as const, blurb: "Model thinks the price will go up" };
+    case "SHORT":
+      return { label: "Sell", arrow: "▼", tone: "down" as const, blurb: "Model thinks the price will go down" };
+    case "HOLD":
+    default:
+      return { label: "Wait", arrow: "•", tone: "flat" as const, blurb: "Model isn't confident either way" };
+  }
+}
+
 export function formatRelativeTime(iso: string | null | undefined): string {
   if (!iso) return "—";
   const then = new Date(iso).getTime();

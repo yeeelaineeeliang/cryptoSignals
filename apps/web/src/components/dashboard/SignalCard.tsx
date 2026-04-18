@@ -2,7 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { formatLogret, formatRelativeTime } from "@/lib/format";
+import {
+  formatLogretPct,
+  formatRelativeTime,
+  signalCopy,
+} from "@/lib/format";
 import type { Pair, Prediction } from "@crypto-signals/shared";
 
 interface SignalCardProps {
@@ -10,36 +14,45 @@ interface SignalCardProps {
   latest: Prediction | undefined;
 }
 
-const SIGNAL_STYLES: Record<string, string> = {
-  LONG: "bg-green-500/15 text-green-400 border-green-500/30",
-  SHORT: "bg-red-500/15 text-red-400 border-red-500/30",
-  HOLD: "bg-white/5 text-white/60 border-white/10",
-};
+const TONE_STYLES = {
+  up: "bg-green-500/15 text-green-400 border-green-500/30",
+  down: "bg-red-500/15 text-red-400 border-red-500/30",
+  flat: "bg-white/5 text-white/60 border-white/10",
+} as const;
+
+const NUMBER_TONE = {
+  up: "text-green-400",
+  down: "text-red-400",
+  flat: "text-foreground",
+} as const;
 
 export function SignalCard({ pair, latest }: SignalCardProps) {
-  const signal = latest?.signal ?? "HOLD";
-  const chip = SIGNAL_STYLES[signal] ?? SIGNAL_STYLES.HOLD;
+  const copy = signalCopy(latest?.signal);
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span className="text-sm font-medium text-muted-foreground">
-            {pair.symbol} signal
+            {pair.display_name}
           </span>
-          <Badge className={`${chip} border font-mono`}>{signal}</Badge>
+          <Badge className={`${TONE_STYLES[copy.tone]} border font-semibold`}>
+            <span className="mr-1">{copy.arrow}</span> {copy.label}
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-mono font-bold">
-            {formatLogret(latest?.predicted_logret ?? null)}
+          <span className={`text-3xl font-mono font-bold ${NUMBER_TONE[copy.tone]}`}>
+            {formatLogretPct(latest?.predicted_logret ?? null)}
           </span>
-          <span className="text-xs text-muted-foreground">predicted next bar</span>
+          <span className="text-xs text-muted-foreground">in next 5 minutes</span>
         </div>
-        <div className="mt-2 text-xs text-muted-foreground">
-          {latest ? `Model v${latest.model_version_id} · ${formatRelativeTime(latest.created_at)}` : "No signal yet"}
-        </div>
+        <p className="mt-2 text-xs text-muted-foreground leading-relaxed">
+          {latest
+            ? `${copy.blurb}. Updated ${formatRelativeTime(latest.created_at)}.`
+            : "Waiting for first prediction…"}
+        </p>
       </CardContent>
     </Card>
   );

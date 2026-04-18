@@ -1,6 +1,7 @@
 import { createPublicSupabaseClient } from "@/lib/supabase/server";
 import { PriceTickerGrid } from "@/components/dashboard/PriceTickerGrid";
 import { SignalsPanel } from "@/components/dashboard/SignalsPanel";
+import { IntroBanner } from "@/components/dashboard/IntroBanner";
 import type { Pair, Prediction, Price } from "@crypto-signals/shared";
 
 export const dynamic = "force-dynamic";
@@ -24,8 +25,19 @@ async function DashboardData() {
 
   return (
     <div className="space-y-8">
-      <PriceTickerGrid pairs={pairs} initialPrices={prices} />
-      <SignalsPanel pairs={pairs} initialPredictions={predictions} />
+      <IntroBanner />
+      <section className="space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-white/50">
+          Live prices
+        </h2>
+        <PriceTickerGrid pairs={pairs} initialPrices={prices} />
+      </section>
+      <section className="space-y-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-white/50">
+          Model calls (updates every 30 seconds)
+        </h2>
+        <SignalsPanel pairs={pairs} initialPredictions={predictions} />
+      </section>
     </div>
   );
 }
