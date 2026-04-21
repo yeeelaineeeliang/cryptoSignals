@@ -11,7 +11,11 @@ export function ThresholdSlider() {
   if (loading) return <div className="h-32 rounded-xl bg-muted/30 animate-pulse" />;
 
   const current = prefs?.signal_threshold ?? 0.002;
-  const idx = STEPS.findIndex((s) => s >= current) ?? 2;
+  // Find the closest step to the stored value (handles floating-point drift)
+  const idx = STEPS.reduce(
+    (best, s, i) => (Math.abs(s - current) < Math.abs(STEPS[best] - current) ? i : best),
+    0
+  );
 
   const pct = (current * 100).toFixed(2);
 
@@ -35,7 +39,7 @@ export function ThresholdSlider() {
           min={0}
           max={STEPS.length - 1}
           step={1}
-          value={idx < 0 ? 2 : idx}
+          value={idx}
           onChange={(e) => update({ signal_threshold: STEPS[Number(e.target.value)] })}
           className="w-full accent-white"
         />

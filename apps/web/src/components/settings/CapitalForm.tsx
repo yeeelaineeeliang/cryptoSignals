@@ -32,7 +32,7 @@ export function CapitalForm() {
       <CardHeader>
         <CardTitle>Starting capital</CardTitle>
         <CardDescription>
-          Reset your paper portfolio to a fresh starting balance. All positions and trades are wiped.
+          Reset your paper portfolio to a fresh starting balance. Open positions are cleared; trade history is preserved.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -74,7 +74,7 @@ export function CapitalForm() {
 
         {confirming && (
           <p className="text-sm text-amber-400">
-            Click again to confirm — this wipes your positions and trade history.
+            Click again to confirm — this clears your open positions and resets cash.
           </p>
         )}
       </CardContent>

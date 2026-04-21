@@ -8,6 +8,7 @@ import {
   Show,
 } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
+import { WorkerHealthBadge } from "@/components/layout/WorkerHealthBadge";
 
 export function Navbar() {
   return (
@@ -54,6 +55,7 @@ export function Navbar() {
           </nav>
         </div>
         <div className="flex items-center gap-3">
+          <WorkerHealthBadge />
           <Show when="signed-out">
             <SignInButton mode="modal">
               <Button
