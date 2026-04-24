@@ -12,18 +12,24 @@ const DEFAULTS: Omit<UserPrefs, "user_id" | "created_at" | "updated_at"> = {
   short_enabled: false,
 };
 
+interface UserPrefsState {
+  loading: boolean;
+  prefs: UserPrefs | null;
+  userId: string | null;
+}
+
 export function useUserPrefs() {
   const { isSignedIn, userId } = useAuth();
   const supabase = useSupabaseClient();
-  const [prefs, setPrefs] = useState<UserPrefs | null>(null);
-  const [loading, setLoading] = useState(true);
+  const isActiveUser = Boolean(isSignedIn && userId);
+  const [state, setState] = useState<UserPrefsState>({
+    loading: isActiveUser,
+    prefs: null,
+    userId: userId ?? null,
+  });
 
   useEffect(() => {
-    if (!isSignedIn || !userId) {
-      setPrefs(null);
-      setLoading(false);
-      return;
-    }
+    if (!isActiveUser || !userId) return;
 
     // Small delay to ensure Clerk session token is ready
     const timer = setTimeout(async () => {
@@ -35,7 +41,7 @@ export function useUserPrefs() {
 
       if (error) {
         console.error("Failed to load user_prefs:", error.message);
-        setLoading(false);
+        setState({ loading: false, prefs: null, userId });
         return;
       }
 
@@ -49,17 +55,29 @@ export function useUserPrefs() {
 
         if (insertErr) {
           console.error("Failed to seed user_prefs:", insertErr.message);
+          setState({ loading: false, prefs: null, userId });
         } else {
-          setPrefs(inserted as UserPrefs);
+          setState({
+            loading: false,
+            prefs: inserted as UserPrefs,
+            userId,
+          });
         }
       } else {
-        setPrefs(data as UserPrefs);
+        setState({
+          loading: false,
+          prefs: data as UserPrefs,
+          userId,
+        });
       }
-      setLoading(false);
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [isSignedIn, userId, supabase]);
+  }, [isActiveUser, userId, supabase]);
+
+  const prefs =
+    isActiveUser && state.userId === userId ? state.prefs : null;
+  const loading = isActiveUser ? state.userId !== userId || state.loading : false;
 
   const update = useCallback(
     async (patch: Partial<UserPrefs>) => {
@@ -67,7 +85,11 @@ export function useUserPrefs() {
 
       // Optimistic update
       const optimistic = { ...prefs, ...patch };
-      setPrefs(optimistic);
+      setState({
+        loading: false,
+        prefs: optimistic,
+        userId,
+      });
 
       const { error } = await supabase
         .from("user_prefs")
@@ -76,7 +98,11 @@ export function useUserPrefs() {
 
       if (error) {
         console.error("Failed to update user_prefs:", error.message);
-        setPrefs(prefs); // revert
+        setState({
+          loading: false,
+          prefs,
+          userId,
+        });
       }
     },
     [userId, prefs, supabase]

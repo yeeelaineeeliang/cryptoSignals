@@ -11,8 +11,8 @@ interface PortfolioSummaryProps {
 export function PortfolioSummary({ portfolio }: PortfolioSummaryProps) {
   if (!portfolio) {
     return (
-      <Card>
-        <CardContent className="py-10 text-center text-sm text-white/40">
+      <Card className="h-full">
+        <CardContent className="py-10 text-center text-sm text-white/50">
           No portfolio yet — trades appear once a signal fires above your threshold.
         </CardContent>
       </Card>
@@ -30,54 +30,73 @@ export function PortfolioSummary({ portfolio }: PortfolioSummaryProps) {
 
   return (
     <div className="space-y-4">
-      {/* Equity summary */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-1">
-            <CardTitle className="text-xs font-medium text-white/50 uppercase tracking-wider">Equity</CardTitle>
+            <CardTitle className="section-label">Equity</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">{formatUSD(equity)}</p>
+            <p className="text-3xl font-semibold tracking-[-0.05em] text-white">
+              {formatUSD(equity)}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-1">
-            <CardTitle className="text-xs font-medium text-white/50 uppercase tracking-wider">Cash</CardTitle>
+            <CardTitle className="section-label">Cash</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-white">{formatUSD(portfolio.cash_usd)}</p>
+            <p className="text-3xl font-semibold tracking-[-0.05em] text-white">
+              {formatUSD(portfolio.cash_usd)}
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-1">
-            <CardTitle className="text-xs font-medium text-white/50 uppercase tracking-wider">Total P&amp;L</CardTitle>
+            <CardTitle className="section-label">Total P&amp;L</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className={`text-2xl font-bold ${isUp ? "text-green-400" : "text-red-400"}`}>
+            <p className={`text-3xl font-semibold tracking-[-0.05em] ${isUp ? "text-emerald-300" : "text-red-300"}`}>
               {isUp ? "+" : ""}{formatUSD(pnl)}
             </p>
-            <p className={`text-xs mt-0.5 ${isUp ? "text-green-400/70" : "text-red-400/70"}`}>
+            <p className={`mt-1 text-xs ${isUp ? "text-emerald-300/70" : "text-red-300/70"}`}>
               {isUp ? "+" : ""}{pnlPct.toFixed(2)}%
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Open positions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base font-semibold text-white">Open positions</CardTitle>
+      <Card className="h-full">
+        <CardHeader className="border-b border-white/10 pb-4">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <div className="section-label">Position book</div>
+              <CardTitle className="mt-2 text-2xl font-semibold text-white">
+                Open positions
+              </CardTitle>
+            </div>
+            <div className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs uppercase tracking-[0.2em] text-white/45">
+              {Object.keys(positions).length} active
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {!hasPositions ? (
-            <p className="text-sm text-white/40">No open positions</p>
+            <p className="text-sm text-white/50">No open positions</p>
           ) : (
-            <div className="divide-y divide-white/5">
+            <div className="space-y-3">
               {Object.entries(positions).map(([sym, pos]) => (
-                <div key={sym} className="grid grid-cols-3 py-3 text-sm">
-                  <span className="font-semibold text-white">{sym}</span>
-                  <span className="text-white/60 font-mono">{Number(pos.qty).toFixed(6)}</span>
-                  <span className="text-right text-white/60 font-mono">
+                <div
+                  key={sym}
+                  className="grid grid-cols-[1fr_auto] gap-3 rounded-[22px] border border-white/10 bg-black/20 px-4 py-3 text-sm"
+                >
+                  <div>
+                    <span className="font-semibold text-white">{sym}</span>
+                    <p className="mt-1 font-mono text-xs text-white/45">
+                      {Number(pos.qty).toFixed(6)} units
+                    </p>
+                  </div>
+                  <span className="text-right font-mono text-white/58">
                     avg {formatUSD(Number(pos.avg_cost))}
                   </span>
                 </div>

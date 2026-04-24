@@ -24,7 +24,7 @@ import pandas as pd
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
-from .metrics import BacktestMetrics, full_backtest
+from .metrics import BacktestMetrics, direction_confusion, full_backtest
 
 VIF_DROP_HARD = 10.0
 VIF_DROP_SOFT = 5.0
@@ -112,6 +112,9 @@ def _step_drop(
     features: list[str], x_train: pd.DataFrame, y_train: pd.Series,
     x_val: pd.DataFrame, y_val: pd.Series,
     current: _IterState, verbose: bool,
+    vif_hard: float = VIF_DROP_HARD,
+    vif_soft: float = VIF_DROP_SOFT,
+    soft_osr2_tolerance: float = SOFT_OSR2_TOLERANCE,
 ) -> tuple[str | None, _IterState]:
     """Given the current state, pick the next feature to drop (or return None
     to stop). Returns (dropped_feature, new_state). dropped=None means stop.
@@ -124,24 +127,23 @@ def _step_drop(
     max_vif = max(current.vif.values())
     worst = max(current.vif, key=current.vif.get)
 
-    if max_vif <= VIF_DROP_SOFT:
+    if max_vif <= vif_soft:
         if verbose:
-            print(f"  -> stopping: max VIF {max_vif:.2f} <= {VIF_DROP_SOFT}")
+            print(f"  -> stopping: max VIF {max_vif:.2f} <= {vif_soft}")
         return None, current
 
-    if max_vif > VIF_DROP_HARD:
-        # Unconditional drop
+    if max_vif > vif_hard:
         kept = [c for c in features if c != worst]
         new_state = _fit_ols(x_train[kept], y_train, x_val[kept], y_val)
         if verbose:
-            print(f"  -> dropping {worst} (VIF {max_vif:.2f} > {VIF_DROP_HARD})")
+            print(f"  -> dropping {worst} (VIF {max_vif:.2f} > {vif_hard})")
         return worst, new_state
 
-    # Soft zone: 5 < VIF <= 10. Check OSR² would not degrade too much.
+    # Soft zone: vif_soft < VIF <= vif_hard. Check OSR² would not degrade too much.
     kept = [c for c in features if c != worst]
     candidate = _fit_ols(x_train[kept], y_train, x_val[kept], y_val)
     degradation = current.osr2 - candidate.osr2
-    if degradation <= SOFT_OSR2_TOLERANCE:
+    if degradation <= soft_osr2_tolerance:
         if verbose:
             print(f"  -> dropping {worst} (VIF {max_vif:.2f}, OSR² change {-degradation:+.4f})")
         return worst, candidate
@@ -149,7 +151,6 @@ def _step_drop(
         if verbose:
             print(f"  -> stopping: dropping {worst} would cost {degradation:.4f} OSR²")
         return None, current
-    # Between tolerance bands: defer and stop.
     if verbose:
         print(f"  -> stopping: {worst} in soft zone but OSR² cost {degradation:.4f}")
     return None, current
@@ -163,6 +164,9 @@ def train_with_vif(
     train_frac: float = 0.70,
     val_frac: float = 0.15,
     verbose: bool = True,
+    vif_hard: float = VIF_DROP_HARD,
+    vif_soft: float = VIF_DROP_SOFT,
+    soft_osr2_tolerance: float = SOFT_OSR2_TOLERANCE,
 ) -> TrainedModel:
     """Run the full VIF-pruned OLS training pipeline.
 
@@ -206,6 +210,8 @@ def train_with_vif(
         dropped, new_state = _step_drop(
             state.features, x_train[state.features], y_train,
             x_val[state.features], y_val, state, verbose=verbose,
+            vif_hard=vif_hard, vif_soft=vif_soft,
+            soft_osr2_tolerance=soft_osr2_tolerance,
         )
         if dropped is None:
             break
@@ -232,9 +238,16 @@ def train_with_vif(
     params = final_model.params
     intercept = float(params.get("const", 0.0))
     coefficients = {c: float(params[c]) for c in final_feats if c in params}
+    y_pred_val = pd.Series(
+        state.intercept + x_val[final_feats].values @ [state.coefs.get(c, 0.0) for c in final_feats],
+        index=y_val.index,
+    )
+    val_conf = direction_confusion(y_val, y_pred_val)
     val_metrics = BacktestMetrics(
         r2=state.r2, osr2=state.osr2, rmse=state.rmse,
-        hit_rate=state.hit_rate, tp=0, fp=0, tn=0, fn=0, n=len(y_val),
+        hit_rate=state.hit_rate,
+        tp=val_conf.tp, fp=val_conf.fp, tn=val_conf.tn, fn=val_conf.fn,
+        n=val_conf.n,
     )
 
     if verbose:

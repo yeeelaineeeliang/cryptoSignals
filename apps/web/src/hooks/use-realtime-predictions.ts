@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Prediction } from "@crypto-signals/shared";
 
@@ -13,11 +13,7 @@ const MAX_PREDICTIONS = 50;
  */
 export function useRealtimePredictions(initial: Prediction[]) {
   const supabase = useSupabaseClient();
-  const [rows, setRows] = useState<Prediction[]>(initial);
-
-  useEffect(() => {
-    setRows(initial);
-  }, [initial]);
+  const [liveRows, setLiveRows] = useState<Prediction[]>([]);
 
   useEffect(() => {
     const channel = supabase
@@ -27,7 +23,7 @@ export function useRealtimePredictions(initial: Prediction[]) {
         { event: "INSERT", schema: "public", table: "predictions" },
         (payload) => {
           const row = payload.new as Prediction;
-          setRows((prev) => {
+          setLiveRows((prev) => {
             const next = [row, ...prev];
             return next.slice(0, MAX_PREDICTIONS);
           });
@@ -40,5 +36,17 @@ export function useRealtimePredictions(initial: Prediction[]) {
     };
   }, [supabase]);
 
-  return rows;
+  return useMemo(() => {
+    const merged: Prediction[] = [];
+    const seen = new Set<Prediction["id"]>();
+
+    for (const row of [...liveRows, ...initial]) {
+      if (seen.has(row.id)) continue;
+      seen.add(row.id);
+      merged.push(row);
+      if (merged.length >= MAX_PREDICTIONS) break;
+    }
+
+    return merged;
+  }, [initial, liveRows]);
 }

@@ -5,19 +5,25 @@ import { useAuth } from "@clerk/nextjs";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Portfolio } from "@crypto-signals/shared";
 
+interface PortfolioState {
+  portfolio: Portfolio | null;
+  loading: boolean;
+  userId: string | null;
+}
+
 export function usePortfolio() {
   const { userId, isSignedIn } = useAuth();
   const supabase = useSupabaseClient();
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [loading, setLoading] = useState(true);
+  const isActiveUser = Boolean(isSignedIn && userId);
+  const [state, setState] = useState<PortfolioState>({
+    portfolio: null,
+    loading: isActiveUser,
+    userId: userId ?? null,
+  });
 
   // Initial fetch
   useEffect(() => {
-    if (!isSignedIn || !userId) {
-      setPortfolio(null);
-      setLoading(false);
-      return;
-    }
+    if (!isActiveUser || !userId) return;
 
     const timer = setTimeout(async () => {
       const { data } = await supabase
@@ -25,12 +31,16 @@ export function usePortfolio() {
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
-      setPortfolio((data as Portfolio) ?? null);
-      setLoading(false);
+
+      setState({
+        portfolio: (data as Portfolio) ?? null,
+        loading: false,
+        userId,
+      });
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [isSignedIn, userId, supabase]);
+  }, [isActiveUser, userId, supabase]);
 
   // Realtime subscription — worker updates this row on every trade
   useEffect(() => {
@@ -47,7 +57,11 @@ export function usePortfolio() {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          setPortfolio(payload.new as Portfolio);
+          setState({
+            portfolio: payload.new as Portfolio,
+            loading: false,
+            userId,
+          });
         }
       )
       .on(
@@ -59,7 +73,11 @@ export function usePortfolio() {
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          setPortfolio(payload.new as Portfolio);
+          setState({
+            portfolio: payload.new as Portfolio,
+            loading: false,
+            userId,
+          });
         }
       )
       .subscribe();
@@ -83,8 +101,18 @@ export function usePortfolio() {
       })
       .select("*")
       .single();
-    if (data) setPortfolio(data as Portfolio);
+    if (data) {
+      setState({
+        portfolio: data as Portfolio,
+        loading: false,
+        userId,
+      });
+    }
   };
+
+  const loading = isActiveUser ? state.userId !== userId || state.loading : false;
+  const portfolio =
+    isActiveUser && state.userId === userId ? state.portfolio : null;
 
   return { portfolio, loading, resetPortfolio };
 }

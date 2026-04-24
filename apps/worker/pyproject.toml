@@ -17,6 +17,7 @@ dependencies = [
   "pydantic-settings>=2.4.0",
   "structlog>=24.0.0",
   "python-dotenv>=1.0.0",
+  "anthropic>=0.40.0",           # used by analyze.py when ENABLE_LLM_FEATURES=true
 ]
 
 [project.optional-dependencies]

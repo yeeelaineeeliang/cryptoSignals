@@ -76,29 +76,43 @@ export function EquityCurve({ trades, portfolio }: EquityCurveProps) {
   const start = portfolio?.starting_capital ?? 10_000;
   const current = portfolio?.equity_usd ?? start;
   const isUp = current >= start;
+  const pnl = current - start;
 
   if (data.length < 2) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base font-semibold text-white">Equity curve</CardTitle>
+          <CardTitle className="text-2xl font-semibold text-white">Equity curve</CardTitle>
         </CardHeader>
-        <CardContent className="py-8 text-center text-sm text-white/40">
+        <CardContent className="py-8 text-center text-sm text-white/50">
           Waiting for first trade…
         </CardContent>
       </Card>
     );
   }
 
-  const color = isUp ? "#4ade80" : "#f87171";
+  const color = isUp ? "#059669" : "#dc2626";
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base font-semibold text-white">Equity curve</CardTitle>
+    <Card className="h-full">
+      <CardHeader className="border-b border-white/10 pb-4">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="section-label">Performance path</div>
+            <CardTitle className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
+              Equity curve
+            </CardTitle>
+          </div>
+          <div className="rounded-[22px] border border-white/10 bg-black/20 px-4 py-3">
+            <div className="section-label">Net change</div>
+            <div className={`mt-2 text-xl font-semibold ${isUp ? "text-emerald-300" : "text-red-300"}`}>
+              {isUp ? "+" : ""}{formatUSD(pnl)}
+            </div>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={200}>
+        <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={data} margin={{ top: 4, right: 8, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="equityGrad" x1="0" y1="0" x2="0" y2="1">
@@ -106,17 +120,17 @@ export function EquityCurve({ trades, portfolio }: EquityCurveProps) {
                 <stop offset="95%" stopColor={color} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
             <XAxis
               dataKey="time"
-              tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10 }}
+              tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10 }}
               axisLine={false}
               tickLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
               tickFormatter={(v) => `$${(v / 1000).toFixed(1)}k`}
-              tick={{ fill: "rgba(255,255,255,0.35)", fontSize: 10 }}
+              tick={{ fill: "rgba(255,255,255,0.45)", fontSize: 10 }}
               axisLine={false}
               tickLine={false}
               width={48}
@@ -124,12 +138,13 @@ export function EquityCurve({ trades, portfolio }: EquityCurveProps) {
             <Tooltip
               formatter={(v: number) => [formatUSD(v), "Equity"]}
               contentStyle={{
-                background: "#0f172a",
+                background: "rgba(12,18,36,0.96)",
                 border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: 8,
+                borderRadius: 16,
                 fontSize: 12,
+                color: "#f7f4ea",
               }}
-              labelStyle={{ color: "rgba(255,255,255,0.5)" }}
+              labelStyle={{ color: "rgba(255,255,255,0.6)" }}
             />
             <Area
               type="monotone"

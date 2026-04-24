@@ -21,16 +21,16 @@ function Metric({ label, value, precision = 4, hint }: MetricProps) {
     value == null || Number.isNaN(value) ? "—" : value.toFixed(precision);
   const tone =
     value == null || Number.isNaN(value)
-      ? "text-white/40"
+      ? "text-white/35"
       : value < 0
-        ? "text-red-400"
+        ? "text-red-300"
         : value > 0
-          ? "text-green-400"
+          ? "text-emerald-300"
           : "text-white";
   return (
-    <div title={hint} className="cursor-help">
-      <div className="text-xs font-medium text-white/50">{label}</div>
-      <div className={`mt-1 font-mono text-2xl font-bold ${tone}`}>{display}</div>
+    <div title={hint} className="metric-panel cursor-help">
+      <div className="section-label">{label}</div>
+      <div className={`mt-3 font-mono text-3xl font-bold ${tone}`}>{display}</div>
     </div>
   );
 }
@@ -43,21 +43,26 @@ export function ModelCard({ model }: ModelCardProps) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="border-b border-white/10 pb-5">
         <CardTitle className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-2xl font-bold">{model.symbol}</span>
+          <div>
+            <div className="section-label">Active symbol</div>
+            <span className="mt-2 block text-3xl font-semibold tracking-[-0.05em] text-white">
+              {model.symbol}
+            </span>
+          </div>
           <div className="flex items-center gap-2">
-            <Badge className="bg-green-500/15 text-green-400 border border-green-500/30">
+            <Badge className="border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
               live
             </Badge>
-            <span className="text-sm text-white/50">
+            <span className="text-sm text-white/45">
               {formatRelativeTime(model.trained_at)}
             </span>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-8">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <Metric
             label={`uses ${model.selected_features.length} of ${totalCandidates}`}
             value={model.selected_features.length}
@@ -82,39 +87,49 @@ export function ModelCard({ model }: ModelCardProps) {
         </div>
 
         <div>
-          <h3 className="text-base font-semibold text-white mb-3">Coefficients</h3>
-          <CoefficientBarChart model={model} />
+          <div className="section-label">Coefficient stack</div>
+          <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
+            Surviving coefficients
+          </h3>
+          <div className="mt-4 rounded-[24px] border border-white/10 bg-black/20 p-4">
+            <CoefficientBarChart model={model} />
+          </div>
         </div>
 
         {model.vif_trace && model.vif_trace.length > 1 && (
           <div>
-            <div className="flex items-baseline justify-between mb-3">
-              <h3 className="text-base font-semibold text-white">
-                Trim history
-              </h3>
+            <div className="mb-3 flex items-baseline justify-between">
+              <div>
+                <div className="section-label">Feature pruning</div>
+                <h3 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
+                  Trim history
+                </h3>
+              </div>
               <div className="flex items-center gap-3 text-xs">
-                <span className="flex items-center gap-1.5 text-white/60">
+                <span className="flex items-center gap-1.5 text-white/58">
                   <span className="h-2 w-2 rounded-full bg-orange-400" /> overlap
                 </span>
-                <span className="flex items-center gap-1.5 text-white/60">
-                  <span className="h-2 w-2 rounded-full bg-blue-400" /> score
+                <span className="flex items-center gap-1.5 text-white/58">
+                  <span className="h-2 w-2 rounded-full bg-cyan-400" /> score
                 </span>
               </div>
             </div>
-            <VifTraceChart trace={model.vif_trace} />
+            <div className="rounded-[24px] border border-white/10 bg-black/20 p-4">
+              <VifTraceChart trace={model.vif_trace} />
+            </div>
           </div>
         )}
 
         {droppedFeatures.length > 0 && (
-          <details className="rounded-lg border border-white/10 bg-white/[0.02] p-4">
-            <summary className="cursor-pointer text-sm font-semibold text-white/70">
+          <details className="rounded-[24px] border border-white/10 bg-black/20 p-4">
+            <summary className="cursor-pointer text-sm font-semibold text-white/78">
               Dropped signals ({droppedFeatures.length})
             </summary>
             <div className="mt-3 flex flex-wrap gap-1.5 text-xs font-mono">
               {droppedFeatures.map((feat) => (
                 <span
                   key={feat}
-                  className="rounded border border-white/10 bg-white/5 px-2 py-1 text-white/50"
+                  className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-white/50"
                 >
                   {feat}
                 </span>

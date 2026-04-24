@@ -20,6 +20,8 @@ from .inference import infer_and_record
 from .ingest import ingest_candles, poll_prices
 from .logging_setup import get_logger, setup_logging
 from .ml.evaluate import evaluate_predictions
+from .ml.optimize import analyze_and_optimize
+from .ml.refit import refit_models
 from .scheduler import add_interval
 from .supabase_client import make_supabase
 
@@ -55,6 +57,12 @@ async def run() -> None:
     async def _evaluate_predictions() -> None:
         await evaluate_predictions(sb, settings)
 
+    async def _refit_models() -> None:
+        await refit_models(sb, settings)
+
+    async def _analyze_and_optimize() -> None:
+        await analyze_and_optimize(sb, settings)
+
     add_interval(
         scheduler,
         "poll_prices",
@@ -79,9 +87,21 @@ async def run() -> None:
         _evaluate_predictions,
         minutes=settings.evaluate_interval_minutes,
     )
-
-    # Phase 3+ jobs get registered here (trading engine, refit_models).
-    # Add them as they're built.
+    add_interval(
+        scheduler,
+        "refit_models",
+        _refit_models,
+        hours=settings.refit_interval_hours,
+    )
+    # Runs after evaluate_predictions on the same 1h cadence.
+    # APScheduler fires both independently; the 60s offset between them
+    # means evaluate always finishes before optimize reads the new perf row.
+    add_interval(
+        scheduler,
+        "analyze_and_optimize",
+        _analyze_and_optimize,
+        minutes=settings.optimize_interval_minutes,
+    )
 
     scheduler.start()
     log.info("scheduler_started", jobs=[j.id for j in scheduler.get_jobs()])

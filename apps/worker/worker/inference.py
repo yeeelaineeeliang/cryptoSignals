@@ -110,7 +110,13 @@ async def infer_and_record(sb: Client, settings: Settings) -> None:
             if feats.empty:
                 log.warning("infer_no_features", symbol=symbol)
                 continue
-            latest = feats.iloc[-1]
+            # Use the second-to-last row: the most recent row is the
+            # currently-open bar (partially ingested), which was never seen
+            # during training. The bar before it is guaranteed fully closed.
+            if len(feats) < 2:
+                log.warning("infer_insufficient_features", symbol=symbol)
+                continue
+            latest = feats.iloc[-2]
 
             prediction = _predict_logret(
                 latest,

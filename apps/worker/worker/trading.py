@@ -55,10 +55,8 @@ async def execute_paper_trades(
             threshold = float(pref.get("signal_threshold") or 0.002)
             if abs(predicted_logret) < threshold:
                 continue
-            if signal == "SHORT" and not pref.get("short_enabled", False):
-                continue
-
-            _trade_for_user(sb, pref, symbol, signal, price, prediction_id)
+            _trade_for_user(sb, pref, symbol, signal, price, prediction_id,
+                            short_enabled=bool(pref.get("short_enabled", False)))
 
     except Exception as e:  # noqa: BLE001
         log.exception("paper_trade_failed", symbol=symbol, error=str(e))
@@ -71,6 +69,7 @@ def _trade_for_user(
     signal: str,
     price: float,
     prediction_id: int,
+    short_enabled: bool = False,
 ) -> None:
     user_id: str = pref["user_id"]
 
@@ -125,7 +124,7 @@ def _trade_for_user(
 
     elif signal == "SHORT":
         if qty_held <= 0:
-            return  # nothing to close
+            return  # nothing to close; opening a net-short position not implemented
         notional = qty_held * price
         fee = notional * FEE_BPS / 10_000
         proceeds = notional - fee

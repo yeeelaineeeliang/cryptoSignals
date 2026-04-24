@@ -10,10 +10,12 @@ interface LivePerformancePanelProps {
 
 function Cell({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="text-center">
-      <p className="text-xs text-white/40 uppercase tracking-wider mb-1">{label}</p>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      {sub && <p className="text-xs text-white/30 mt-0.5">{sub}</p>}
+    <div className="metric-panel text-left">
+      <p className="section-label">{label}</p>
+      <p className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-white">
+        {value}
+      </p>
+      {sub && <p className="mt-2 text-xs text-white/45">{sub}</p>}
     </div>
   );
 }
@@ -21,18 +23,18 @@ function Cell({ label, value, sub }: { label: string; value: string; sub?: strin
 function ConfusionMatrix({ tp, fp, tn, fn }: { tp: number; fp: number; tn: number; fn: number }) {
   const total = tp + fp + tn + fn || 1;
   const cells = [
-    { label: "True Long", value: tp, color: "bg-green-500/20 text-green-400" },
-    { label: "False Long", value: fp, color: "bg-red-500/10 text-red-400/70" },
-    { label: "False Short", value: fn, color: "bg-red-500/10 text-red-400/70" },
-    { label: "True Short", value: tn, color: "bg-green-500/20 text-green-400" },
+    { label: "True Long", value: tp, color: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300" },
+    { label: "False Long", value: fp, color: "border-red-400/20 bg-red-400/10 text-red-300" },
+    { label: "False Short", value: fn, color: "border-red-400/20 bg-red-400/10 text-red-300" },
+    { label: "True Short", value: tn, color: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300" },
   ];
 
   return (
     <div>
-      <p className="text-xs text-white/40 uppercase tracking-wider mb-2">Confusion matrix (live)</p>
-      <div className="grid grid-cols-2 gap-1 w-48">
+      <p className="section-label mb-3">Confusion matrix</p>
+      <div className="grid grid-cols-2 gap-2">
         {cells.map((c) => (
-          <div key={c.label} className={`rounded-lg p-3 ${c.color}`}>
+          <div key={c.label} className={`rounded-[22px] border p-4 ${c.color}`}>
             <p className="text-xs text-current/60">{c.label}</p>
             <p className="text-lg font-bold">{c.value}</p>
             <p className="text-xs opacity-60">{((c.value / total) * 100).toFixed(0)}%</p>
@@ -56,60 +58,61 @@ export function LivePerformancePanel({ model, perf }: LivePerformancePanelProps)
     gap == null
       ? null
       : Math.abs(Number(gap)) <= 3
-        ? { label: "honest", color: "text-green-400" }
+        ? { label: "honest", color: "text-emerald-300" }
         : Number(gap) > 8
-          ? { label: "overfit", color: "text-red-400" }
-          : Number(gap) > 3
-            ? { label: "mild overfit", color: "text-amber-400" }
-            : { label: "regime luck", color: "text-blue-400" };
+          ? { label: "overfit", color: "text-red-300" }
+        : Number(gap) > 3
+            ? { label: "mild overfit", color: "text-[#ffd9a8]" }
+            : { label: "regime luck", color: "text-cyan-300" };
 
   const confusion = perf?.confusion;
   const n = confusion ? Object.values(confusion).reduce((a, b) => a + b, 0) : 0;
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base font-semibold text-white">
+      <CardHeader className="border-b border-white/10 pb-5">
+        <CardTitle className="text-2xl font-semibold tracking-[-0.04em] text-white">
           Backtest vs live — {model.symbol}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-8 items-start">
-          {/* Hit rate comparison */}
-          <div className="flex gap-6">
+        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid gap-4 sm:grid-cols-3">
             <Cell label="Test hit rate" value={testHit} sub="held-out set" />
-            <div className="flex items-center pt-6 text-white/20 text-xl">→</div>
             <Cell
               label="Live hit rate"
               value={liveHit}
               sub={n > 0 ? `n=${n} predictions` : "no live data yet"}
             />
             {gap != null && (
-              <div className="flex flex-col items-center pt-4">
-                <p className="text-xs text-white/40 uppercase tracking-wider mb-1">Gap</p>
-                <p className={`text-lg font-bold ${gapTag?.color}`}>
+              <div className="metric-panel">
+                <p className="section-label">Gap</p>
+                <p className={`mt-3 text-3xl font-semibold tracking-[-0.05em] ${gapTag?.color}`}>
                   {Number(gap) > 0 ? "+" : ""}{gap} pp
                 </p>
                 {gapTag && (
-                  <p className={`text-xs font-medium ${gapTag.color}`}>{gapTag.label}</p>
+                  <p className={`mt-2 text-xs font-medium uppercase tracking-[0.2em] ${gapTag.color}`}>
+                    {gapTag.label}
+                  </p>
                 )}
               </div>
             )}
           </div>
 
-          {/* Confusion matrix */}
           {confusion && n > 0 && (
-            <ConfusionMatrix
-              tp={confusion.tp}
-              fp={confusion.fp}
-              tn={confusion.tn}
-              fn={confusion.fn}
-            />
+            <div className="rounded-[24px] border border-white/10 bg-black/20 p-4">
+              <ConfusionMatrix
+                tp={confusion.tp}
+                fp={confusion.fp}
+                tn={confusion.tn}
+                fn={confusion.fn}
+              />
+            </div>
           )}
         </div>
 
         {!perf && (
-          <p className="text-sm text-white/30 mt-4">
+          <p className="mt-4 text-sm text-white/50">
             Live metrics appear after the first evaluation cycle (runs hourly).
           </p>
         )}

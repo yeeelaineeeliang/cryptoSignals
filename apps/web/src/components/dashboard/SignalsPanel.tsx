@@ -38,9 +38,21 @@ export function SignalsPanel({ pairs, initialPredictions }: SignalsPanelProps) {
     return m;
   }, [predictions]);
 
+  if (watchedPairs.length === 0) {
+    return (
+      <div className="rounded-[28px] border border-dashed border-white/15 bg-black/20 p-10 text-center text-white/50">
+        No watched pairs selected. Adjust your watchlist in{" "}
+        <a href="/settings" className="font-medium text-[#ffd9a8] underline">
+          Settings
+        </a>{" "}
+        to surface model calls here.
+      </div>
+    );
+  }
+
   return (
-    <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+    <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-1">
         {watchedPairs.map((pair) => (
           <SignalCard
             key={pair.symbol}

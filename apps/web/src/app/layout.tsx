@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
 import { DisclaimerFooter } from "@/components/layout/DisclaimerFooter";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-plex-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -30,11 +31,11 @@ export default function RootLayout({
     <ClerkProvider>
       <html
         lang="en"
-        className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+        className={`${spaceGrotesk.variable} ${ibmPlexMono.variable} dark h-full antialiased`}
       >
         <body className="min-h-full flex flex-col bg-background text-foreground">
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main className="relative flex-1 pb-16">{children}</main>
           <DisclaimerFooter />
         </body>
       </html>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useSession, useAuth } from "@clerk/nextjs";
+import { useAuth } from "@clerk/nextjs";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { useRef, useMemo } from "react";
+import { useMemo } from "react";
 
 /**
  * Supabase client bound to the Clerk session.
@@ -14,11 +14,7 @@ import { useRef, useMemo } from "react";
  * Mirrors the NBA scoreboard reference — do not diverge without reason.
  */
 export function useSupabaseClient(): SupabaseClient {
-  const { session } = useSession();
   const { getToken } = useAuth();
-
-  const getTokenRef = useRef(getToken);
-  getTokenRef.current = getToken;
 
   return useMemo(() => {
     return createClient(
@@ -27,7 +23,7 @@ export function useSupabaseClient(): SupabaseClient {
       {
         global: {
           fetch: async (url, options = {}) => {
-            const clerkToken = await getTokenRef.current({
+            const clerkToken = await getToken({
               template: "supabase",
             });
 
@@ -41,6 +37,5 @@ export function useSupabaseClient(): SupabaseClient {
         },
       }
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [getToken]);
 }

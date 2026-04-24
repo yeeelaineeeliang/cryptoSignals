@@ -22,9 +22,12 @@ export function PriceTickerGrid({ pairs, initialPrices }: PriceTickerGridProps) 
 
   if (loading) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
         {pairs.map((p) => (
-          <div key={p.symbol} className="h-32 rounded-xl bg-muted/30 animate-pulse" />
+          <div
+            key={p.symbol}
+            className="h-48 animate-pulse rounded-[28px] border border-white/10 bg-white/[0.04]"
+          />
         ))}
       </div>
     );
@@ -32,9 +35,9 @@ export function PriceTickerGrid({ pairs, initialPrices }: PriceTickerGridProps) 
 
   if (watched.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border p-10 text-center text-muted-foreground">
+      <div className="rounded-[28px] border border-dashed border-white/15 bg-black/20 p-10 text-center text-white/50">
         No pairs selected. Head to{" "}
-        <a href="/settings" className="underline text-foreground">
+        <a href="/settings" className="font-medium text-[#ffd9a8] underline">
           Settings
         </a>{" "}
         to pick one.
@@ -43,7 +46,7 @@ export function PriceTickerGrid({ pairs, initialPrices }: PriceTickerGridProps) 
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
       {watched.map((pair) => (
         <PriceTicker
           key={pair.symbol}

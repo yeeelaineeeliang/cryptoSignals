@@ -29,16 +29,22 @@ export function CapitalForm() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Starting capital</CardTitle>
+      <CardHeader className="border-b border-white/10 pb-4">
+        <div className="section-label">Portfolio reset</div>
+        <CardTitle className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-white">
+          Starting capital
+        </CardTitle>
         <CardDescription>
           Reset your paper portfolio to a fresh starting balance. Open positions are cleared; trade history is preserved.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-sm text-white/50">
-          Current: <span className="text-white font-mono">{formatUSD(current)}</span>
-        </p>
+        <div className="rounded-[24px] border border-white/10 bg-black/20 px-4 py-4">
+          <div className="section-label">Current baseline</div>
+          <p className="mt-3 text-3xl font-semibold tracking-[-0.05em] text-white">
+            {formatUSD(current)}
+          </p>
+        </div>
 
         <div className="flex flex-wrap gap-2">
           {PRESETS.map((amount) => (
@@ -47,7 +53,7 @@ export function CapitalForm() {
               type="button"
               onClick={() => handleReset(amount)}
               disabled={pending}
-              className="rounded-full border border-white/20 px-4 py-1.5 text-sm font-medium text-white/70 hover:border-white/50 hover:text-white transition-colors disabled:opacity-40"
+              className="rounded-full border border-white/10 bg-black/20 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white disabled:opacity-40"
             >
               {formatUSD(amount)}
             </button>
@@ -60,20 +66,20 @@ export function CapitalForm() {
             placeholder="Custom amount"
             value={custom}
             onChange={(e) => { setCustom(e.target.value); setConfirming(false); }}
-            className="flex-1 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-white/20"
+            className="flex-1 rounded-[18px] border border-white/10 bg-black/20 px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-[#ffb84e]/35"
           />
           <button
             type="button"
             onClick={() => handleReset(Number(custom))}
             disabled={!custom || Number(custom) <= 0 || pending}
-            className="rounded-lg border border-white/20 px-4 py-2 text-sm font-medium text-white/70 hover:border-white/50 hover:text-white transition-colors disabled:opacity-40"
+            className="rounded-[18px] border border-white/10 bg-black/20 px-4 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/[0.06] hover:text-white disabled:opacity-40"
           >
             Set
           </button>
         </div>
 
         {confirming && (
-          <p className="text-sm text-amber-400">
+          <p className="rounded-[18px] border border-amber-400/25 bg-amber-400/10 px-3 py-2 text-sm text-[#ffd9a8]">
             Click again to confirm — this clears your open positions and resets cash.
           </p>
         )}

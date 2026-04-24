@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     enable_paper_trading: bool = True
     enable_llm_features: bool = False
 
+    # Optimization loop
+    optimize_interval_minutes: int = 60   # runs after every evaluate cycle
+
     # Observability
     log_level: str = "INFO"
     build_sha: str = Field(default="", description="Railway auto-injects this.")

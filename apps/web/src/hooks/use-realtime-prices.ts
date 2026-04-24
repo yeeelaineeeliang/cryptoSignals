@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { Price } from "@crypto-signals/shared";
 
@@ -11,13 +11,9 @@ import type { Price } from "@crypto-signals/shared";
  */
 export function useRealtimePrices(initialPrices: Price[]) {
   const supabase = useSupabaseClient();
-  const [priceMap, setPriceMap] = useState<Map<string, Price>>(
-    () => new Map(initialPrices.map((p) => [p.symbol, p]))
+  const [livePrices, setLivePrices] = useState<Map<string, Price>>(
+    () => new Map()
   );
-
-  useEffect(() => {
-    setPriceMap(new Map(initialPrices.map((p) => [p.symbol, p])));
-  }, [initialPrices]);
 
   useEffect(() => {
     const channel = supabase
@@ -28,7 +24,7 @@ export function useRealtimePrices(initialPrices: Price[]) {
         (payload) => {
           if (payload.eventType === "DELETE") return;
           const updated = payload.new as Price;
-          setPriceMap((prev) => {
+          setLivePrices((prev) => {
             const next = new Map(prev);
             next.set(updated.symbol, updated);
             return next;
@@ -42,5 +38,13 @@ export function useRealtimePrices(initialPrices: Price[]) {
     };
   }, [supabase]);
 
-  return priceMap;
+  return useMemo(() => {
+    const next = new Map(initialPrices.map((p) => [p.symbol, p]));
+
+    for (const [symbol, price] of livePrices) {
+      next.set(symbol, price);
+    }
+
+    return next;
+  }, [initialPrices, livePrices]);
 }

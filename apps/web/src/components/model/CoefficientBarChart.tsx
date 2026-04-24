@@ -32,24 +32,26 @@ export function CoefficientBarChart({ model }: CoefficientBarChartProps) {
       <ResponsiveContainer width="100%" height={Math.max(200, data.length * 22)}>
         <BarChart data={data} layout="vertical" margin={{ left: 80, right: 24, top: 8, bottom: 8 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
-          <XAxis type="number" stroke="rgba(255,255,255,0.4)" tick={{ fontSize: 11 }} />
+          <XAxis type="number" stroke="rgba(255,255,255,0.35)" tick={{ fontSize: 11, fill: "rgba(255,255,255,0.52)" }} />
           <YAxis
             type="category"
             dataKey="feature"
-            stroke="rgba(255,255,255,0.4)"
-            tick={{ fontSize: 10, fontFamily: "ui-monospace, monospace" }}
+            stroke="rgba(255,255,255,0.35)"
+            tick={{ fontSize: 10, fill: "rgba(255,255,255,0.52)", fontFamily: "ui-monospace, monospace" }}
             width={140}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "rgba(20,20,20,0.95)",
+              backgroundColor: "rgba(12,18,36,0.96)",
               border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 16,
               fontSize: 12,
+              color: "#f7f4ea",
             }}
             formatter={(v: number) => v.toExponential(3)}
           />
-          <ReferenceLine x={0} stroke="rgba(255,255,255,0.3)" />
-          <Bar dataKey="coef" fill="#60a5fa" radius={[0, 2, 2, 0]} />
+          <ReferenceLine x={0} stroke="rgba(255,255,255,0.22)" />
+          <Bar dataKey="coef" fill="#ffb84e" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

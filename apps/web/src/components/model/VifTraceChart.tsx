@@ -40,41 +40,43 @@ export function VifTraceChart({ trace }: VifTraceChartProps) {
           <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
           <XAxis
             dataKey="iter"
-            stroke="rgba(255,255,255,0.4)"
-            tick={{ fontSize: 11 }}
+            stroke="rgba(255,255,255,0.35)"
+            tick={{ fontSize: 11, fill: "rgba(255,255,255,0.52)" }}
             label={{
               value: "elimination iteration",
               position: "insideBottom",
               offset: -4,
-              fill: "rgba(255,255,255,0.5)",
+              fill: "rgba(255,255,255,0.52)",
               fontSize: 11,
             }}
           />
           <YAxis
             yAxisId="left"
             stroke="#f97316"
-            tick={{ fontSize: 11 }}
+            tick={{ fontSize: 11, fill: "#c2410c" }}
             label={{ value: "log10(max VIF)", angle: -90, position: "insideLeft", fill: "#f97316", fontSize: 11 }}
           />
           <YAxis
             yAxisId="right"
             orientation="right"
-            stroke="#60a5fa"
-            tick={{ fontSize: 11 }}
-            label={{ value: "val OSR²", angle: 90, position: "insideRight", fill: "#60a5fa", fontSize: 11 }}
+            stroke="#67e8f9"
+            tick={{ fontSize: 11, fill: "#67e8f9" }}
+            label={{ value: "val OSR²", angle: 90, position: "insideRight", fill: "#67e8f9", fontSize: 11 }}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "rgba(20,20,20,0.95)",
+              backgroundColor: "rgba(12,18,36,0.96)",
               border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: 16,
               fontSize: 12,
+              color: "#f7f4ea",
             }}
             labelFormatter={(iter, payload) => {
               const entry = payload?.[0]?.payload;
               return entry?.dropped ? `iter ${iter} — dropped ${entry.dropped}` : `iter ${iter} — start`;
             }}
           />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
+          <Legend wrapperStyle={{ fontSize: 11, color: "rgba(255,255,255,0.52)" }} />
           <Line
             yAxisId="left"
             type="monotone"
@@ -88,7 +90,7 @@ export function VifTraceChart({ trace }: VifTraceChartProps) {
             yAxisId="right"
             type="monotone"
             dataKey="osr2"
-            stroke="#60a5fa"
+            stroke="#67e8f9"
             strokeWidth={2}
             dot={{ r: 3 }}
             name="val OSR²"

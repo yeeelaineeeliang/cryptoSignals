@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useSupabaseClient } from "@/lib/supabase/client";
 import type { PaperTrade } from "@crypto-signals/shared";
@@ -10,11 +10,7 @@ const MAX_TRADES = 100;
 export function useRealtimeTrades(initial: PaperTrade[]) {
   const { userId } = useAuth();
   const supabase = useSupabaseClient();
-  const [trades, setTrades] = useState<PaperTrade[]>(initial);
-
-  useEffect(() => {
-    setTrades(initial);
-  }, [initial]);
+  const [liveTrades, setLiveTrades] = useState<PaperTrade[]>([]);
 
   useEffect(() => {
     if (!userId) return;
@@ -31,7 +27,7 @@ export function useRealtimeTrades(initial: PaperTrade[]) {
         },
         (payload) => {
           const row = payload.new as PaperTrade;
-          setTrades((prev) => [row, ...prev].slice(0, MAX_TRADES));
+          setLiveTrades((prev) => [row, ...prev].slice(0, MAX_TRADES));
         }
       )
       .subscribe();
@@ -41,5 +37,17 @@ export function useRealtimeTrades(initial: PaperTrade[]) {
     };
   }, [userId, supabase]);
 
-  return trades;
+  return useMemo(() => {
+    const merged: PaperTrade[] = [];
+    const seen = new Set<PaperTrade["id"]>();
+
+    for (const trade of [...liveTrades, ...initial]) {
+      if (seen.has(trade.id)) continue;
+      seen.add(trade.id);
+      merged.push(trade);
+      if (merged.length >= MAX_TRADES) break;
+    }
+
+    return merged;
+  }, [initial, liveTrades]);
 }
